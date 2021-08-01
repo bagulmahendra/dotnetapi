@@ -14,7 +14,7 @@ namespace GCPAPi
 {
     public class Program
     {
-        public static IHostingEnvironment HostingEnvironment { get; private set; }
+        public static IWebHostEnvironment HostingEnvironment { get; private set; }
         public static IConfiguration Configuration { get; private set; }
 
         public static string GcpProjectId { get; private set; }
@@ -42,8 +42,8 @@ namespace GCPAPi
                 {
                     // Add framework services.Microsoft.VisualStudio.ExtensionManager.ExtensionManagerService
                     services.AddMvc();
-                    
 
+                    
                     services.AddDbContext<SecurityAPIContext>(options =>
                     options.UseNpgsql(Configuration.GetConnectionString("SecurityContext")));
 
@@ -65,14 +65,9 @@ namespace GCPAPi
                 .ConfigureLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(Configuration.GetSection("Logging"));
-                    if (HostingEnvironment.IsDevelopment())
-                    {
-                        // Only use Console and Debug logging during development.
-                        loggingBuilder.AddConsole(options =>
-                            options.IncludeScopes = Configuration.GetValue<bool>("Logging:IncludeScopes"));
-                        loggingBuilder.AddDebug();
-                    }
+                    
                 })
+
                 .Configure((app) =>
                 {
                     var logger = app.ApplicationServices.GetService<ILoggerFactory>().CreateLogger("Startup");
@@ -100,7 +95,8 @@ namespace GCPAPi
                             "Stackdriver Trace not enabled. Missing Google:ProjectId in configuration.");
                     }
 
-                    app.UseMvc();
+                    app.UseRouting();
+                    app.UseEndpoints(builder => builder.MapControllers());
                 })
                 .Build();
 
